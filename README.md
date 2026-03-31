@@ -124,7 +124,7 @@ resource "dhi_customization" "golang" {
 
 ## 📄 License
 
-See [LICENSE](LICENSE) for details.
+See [LICENSE](LICENSE) for details. 
 
 ## 📬 Contact
 
