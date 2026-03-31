@@ -1,13 +1,13 @@
 terraform {
   required_providers {
     dhi = {
-      source = "registry.terraform.io/docker-hardened-images/dhi"
+      source = "docker-hardened-images/dhi"
     }
   }
 }
 
 provider "dhi" {
-  organization = "einhornhamster"
+  organization = "my-org"
 }
 
 # --- Look up a single repository and its tag definitions ---

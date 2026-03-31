@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     dhi = {
-      source = "registry.terraform.io/docker-hardened-images/dhi"
+      source = "docker-hardened-images/dhi"
     }
   }
 }

@@ -1,13 +1,13 @@
 terraform {
   required_providers {
     dhi = {
-      source = "registry.terraform.io/docker-hardened-images/dhi"
+      source = "docker-hardened-images/dhi"
     }
   }
 }
 
 provider "dhi" {
-  organization = "acme-org"
+  organization = "my-org"
 }
 
 # Look up the source repository to get available tag definitions
@@ -45,7 +45,7 @@ resource "dhi_customization" "golang" {
     packages = ["curl", "git", "jq", "wget", "nodejs"]
 
     artifact {
-      reference = "acme-org/dhi-nginx:1.28-debian13-fips-dev"
+      reference = "my-org/dhi-nginx:1.28-debian13-fips-dev"
       includes  = ["usr/bin"]
       excludes  = ["etc/ssl/certs/README"]
     }
@@ -74,21 +74,21 @@ resource "dhi_customization" "golang" {
   }
 
   environment = {
-    APP_ENV     = "production"
-    LOG_LEVEL   = "info"
-    GOMAXPROCS  = "4"
+    APP_ENV    = "production"
+    LOG_LEVEL  = "info"
+    GOMAXPROCS = "4"
   }
 
   entrypoint = ["/usr/local/bin/go"]
   cmd        = ["version"]
 
   labels = {
-    "com.something.managed-by" = "terraform"
-    "org.opencontainers.image.vendor" = "Acme Corp"
+    "com.example.managed-by"          = "terraform"
+    "org.opencontainers.image.vendor" = "My Corp"
   }
 
   annotations = {
-    "com.something.team" = "platform-engineering"
+    "com.example.team" = "platform-engineering"
   }
 
   file {

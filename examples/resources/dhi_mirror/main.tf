@@ -1,16 +1,16 @@
 terraform {
   required_providers {
     dhi = {
-      source = "registry.terraform.io/docker-hardened-images/dhi"
+      source = "docker-hardened-images/dhi"
     }
   }
 }
 
 provider "dhi" {
-  organization = "acme-org"
+  organization = "my-org"
 }
 
-# destination_namespace defaults to the provider's organization ("acme-org")
+# destination_namespace defaults to the provider's organization
 resource "dhi_mirror" "golang" {
   source_namespace   = "dhi"
   source_name        = "golang"
