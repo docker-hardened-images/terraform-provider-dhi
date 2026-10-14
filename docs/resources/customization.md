@@ -34,6 +34,7 @@ Manages a Docker Hardened Images customization. Supports both image and Helm cha
 - `labels` (Map of String) Image labels as key-value pairs. For image customizations only.
 - `platforms` (List of String) Target platforms (e.g. `linux/amd64`, `linux/arm64`). For image customizations only.
 - `reference_mapping` (Block List) Helm chart reference mappings. For Helm chart customizations only. (see [below for nested schema](#nestedblock--reference_mapping))
+- `symlink` (Block List) Symlinks to create in the image. For image customizations only. (see [below for nested schema](#nestedblock--symlink))
 
 ### Read-Only
 
@@ -122,6 +123,20 @@ Required:
 
 - `from` (String) Original image reference.
 - `to` (String) Replacement image reference.
+
+
+<a id="nestedblock--symlink"></a>
+### Nested Schema for `symlink`
+
+Required:
+
+- `path` (String) Absolute path of the symlink to create. Must be unique across files and symlinks.
+- `source` (String) Absolute path the symlink points to.
+
+Optional:
+
+- `gid` (Number) Optional owner group ID. Omitted when not set.
+- `uid` (Number) Optional owner user ID. Omitted when not set.
 
 
 <a id="nestedblock--latest_build"></a>
