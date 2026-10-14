@@ -51,6 +51,20 @@ resource "dhi_customization" "golang" {
     }
   }
 
+  # Symlinks to create in the image. uid/gid are optional and are omitted
+  # when not set.
+  symlink {
+    path   = "/usr/local/foo"
+    source = "/usr/local/bar"
+    uid    = 1000
+    gid    = 1000
+  }
+
+  symlink {
+    path   = "/usr/local/bin/foo"
+    source = "/usr/local/bin/bar"
+  }
+
   accounts {
     run_as           = "appuser"
     create_root_user = false
