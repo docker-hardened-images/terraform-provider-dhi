@@ -96,6 +96,10 @@ resource "dhi_customization" "golang" {
   entrypoint = ["/usr/local/bin/go"]
   cmd        = ["version"]
 
+  # Working directory of the image. Optional; inherits the base image's
+  # working directory when unset.
+  working_directory = "/app"
+
   labels = {
     "com.example.managed-by"          = "terraform"
     "org.opencontainers.image.vendor" = "My Corp"
