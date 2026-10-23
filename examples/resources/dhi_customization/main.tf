@@ -32,6 +32,9 @@ locals {
 }
 
 # Image customization using all available fields.
+# Every field except name, source, destination, tag_definition_id and platforms is optional.
+# A field you leave out is inherited from the tag definition; a field you set overrides
+# the inherited value. Keep only the fields you want to override.
 # destination without a "/" is automatically prefixed with provider.organization
 resource "dhi_customization" "golang" {
   name              = "custom"
@@ -39,15 +42,21 @@ resource "dhi_customization" "golang" {
   destination       = dhi_mirror.golang.destination_name
   tag_definition_id = local.golang_dev_tag.id
 
+  # Required. Use platforms the tag definition supports, for example "linux/amd64" and
+  # "linux/arm64". data.dhi_catalog_repository.golang.platforms lists the supported ones.
   platforms = ["linux/amd64", "linux/arm64"]
+
+  # Layer compression: GZIP or ZSTD. Leave it out to keep the default; setting it
+  # overrides the default.
+  compression = "ZSTD"
 
   contents {
     packages = ["curl", "git", "jq", "wget", "nodejs"]
 
     artifact {
       reference = "my-org/dhi-nginx:1.28-debian13-fips-dev"
-      includes  = ["usr/bin"]
-      excludes  = ["etc/ssl/certs/README"]
+      includes  = ["usr/bin"] # optional
+      excludes  = ["etc/ssl/certs/README"] # optional
     }
   }
 
@@ -65,6 +74,8 @@ resource "dhi_customization" "golang" {
     source = "/usr/local/bin/bar"
   }
 
+  # Each field you set overrides the inherited one. Setting user or group replaces the
+  # inherited list instead of adding to it.
   accounts {
     run_as           = "appuser"
     create_root_user = false
@@ -87,6 +98,8 @@ resource "dhi_customization" "golang" {
     }
   }
 
+  # Environment variables, labels and annotations are merged by key with the inherited
+  # ones: a key you set overrides the inherited key with the same name.
   environment = {
     APP_ENV    = "production"
     LOG_LEVEL  = "info"
@@ -96,8 +109,8 @@ resource "dhi_customization" "golang" {
   entrypoint = ["/usr/local/bin/go"]
   cmd        = ["version"]
 
-  # Working directory of the image. Optional; inherits the base image's
-  # working directory when unset.
+  # Working directory of the image. Leave it out to inherit the tag definition's
+  # working directory; setting it overrides the inherited value.
   working_directory = "/app"
 
   labels = {
@@ -109,6 +122,7 @@ resource "dhi_customization" "golang" {
     "com.example.team" = "platform-engineering"
   }
 
+  # Every field of a file is required.
   file {
     path    = "/etc/app/config.yaml"
     content = <<-EOT
@@ -127,6 +141,8 @@ resource "dhi_customization" "golang" {
       curl -sf http://localhost:8080/health || exit 1
     EOT
     mode    = "0755"
+    uid     = 1001
+    gid     = 1001
   }
 }
 

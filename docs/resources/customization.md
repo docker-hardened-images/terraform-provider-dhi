@@ -4,11 +4,14 @@ page_title: "dhi_customization Resource - terraform-provider-dhi"
 subcategory: ""
 description: |-
   Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations.
+  A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition; a field you set is stored on the customization and stops following it. Nothing is filled in for you, so what you write is what is stored. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
 ---
 
 # dhi_customization (Resource)
 
 Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations.
+
+A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition; a field you set is stored on the customization and stops following it. Nothing is filled in for you, so what you write is what is stored. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
 
 
 
@@ -17,29 +20,31 @@ Manages a Docker Hardened Images customization. Supports both image and Helm cha
 
 ### Required
 
-- `destination` (String) Destination repository. Use `namespace/name` format or just `name` to default the namespace to the provider's `organization`.
-- `name` (String) Name of the customization.
+- `destination` (String) Destination repository. Use `namespace/name` format or just `name` to default the namespace to the provider's `organization`. Changing it to a different repository replaces the customization.
+- `name` (String) Name of the customization. Changing it replaces the customization.
 - `source` (String) Source DHI repository in `namespace/name` format (e.g. `dhi/golang`).
 - `tag_definition_id` (String) Tag definition ID from the source repository catalog.
 
 ### Optional
 
-- `accounts` (Block, Optional) Account configuration. For image customizations only. (see [below for nested schema](#nestedblock--accounts))
-- `annotations` (Map of String) Image annotations as key-value pairs. For image customizations only.
-- `cmd` (List of String) CMD arguments. For image customizations only.
-- `contents` (Block, Optional) Package and artifact contents. For image customizations only. (see [below for nested schema](#nestedblock--contents))
-- `entrypoint` (List of String) Entrypoint arguments. For image customizations only.
-- `environment` (Map of String) Environment variables as key-value pairs. For image customizations only.
-- `file` (Block List) Files to include in the image. For image customizations only. (see [below for nested schema](#nestedblock--file))
-- `labels` (Map of String) Image labels as key-value pairs. For image customizations only.
-- `platforms` (List of String) Target platforms (e.g. `linux/amd64`, `linux/arm64`). For image customizations only.
+- `accounts` (Block, Optional) Account configuration. For image customizations only. Leave the block out to inherit the tag definition's accounts. Each field you set overrides the inherited value; the fields you leave out are still inherited. (see [below for nested schema](#nestedblock--accounts))
+- `annotations` (Map of String) Image annotations as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's annotations. An annotation you set overrides the inherited one with the same key; the other inherited annotations are kept.
+- `cmd` (List of String) CMD arguments. For image customizations only. Leave unset to inherit the tag definition's command. Setting it replaces the inherited command.
+- `compression` (String) Layer compression algorithm. Must be one of `GZIP` or `ZSTD`. For image customizations only. Leave unset to keep the default compression; setting it overrides the default.
+- `contents` (Block, Optional) Additional packages and artifacts. For image customizations only. Leave the block out to inherit. (see [below for nested schema](#nestedblock--contents))
+- `entrypoint` (List of String) Entrypoint arguments. For image customizations only. Leave unset to inherit the tag definition's entrypoint. Setting it replaces the inherited entrypoint.
+- `environment` (Map of String) Environment variables as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's variables. A variable you set overrides the inherited one with the same name; the other inherited variables are kept.
+- `file` (Block List) Files to add to the image. For image customizations only. `path`, `content`, `mode`, `uid` and `gid` are all required. (see [below for nested schema](#nestedblock--file))
+- `labels` (Map of String) Image labels as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's labels. A label you set overrides the inherited one with the same key; the other inherited labels are kept.
+- `platforms` (List of String) Target platforms. Required for image customizations; not used by Helm chart customizations. For example `platforms = ["linux/amd64", "linux/arm64"]`. Use platforms the tag definition supports; the `platforms` attribute of the `dhi_catalog_repository` data source lists them.
 - `reference_mapping` (Block List) Helm chart reference mappings. For Helm chart customizations only. (see [below for nested schema](#nestedblock--reference_mapping))
 - `symlink` (Block List) Symlinks to create in the image. For image customizations only. (see [below for nested schema](#nestedblock--symlink))
+- `working_directory` (String) Working directory. For image customizations only. Leave unset to inherit the tag definition's working directory; setting it overrides the inherited value.
 
 ### Read-Only
 
 - `id` (String) Unique identifier of the customization.
-- `latest_build` (Block, Read-only) Latest build information (computed). (see [below for nested schema](#nestedblock--latest_build))
+- `latest_build` (Attributes) Latest build information (computed by the server). (see [below for nested schema](#nestedatt--latest_build))
 - `tag_suffix` (String) Tag suffix assigned to this customization.
 
 <a id="nestedblock--accounts"></a>
@@ -47,10 +52,10 @@ Manages a Docker Hardened Images customization. Supports both image and Helm cha
 
 Optional:
 
-- `create_root_user` (Boolean) Whether to create the root user.
-- `group` (Block List) Groups to create. (see [below for nested schema](#nestedblock--accounts--group))
-- `run_as` (String) User to run as.
-- `user` (Block List) Users to create. (see [below for nested schema](#nestedblock--accounts--user))
+- `create_root_user` (Boolean) Whether to create the root user. Leave unset to inherit the tag definition's value.
+- `group` (Block List) Groups to create. Setting any group replaces the inherited groups instead of adding to them, so include the inherited groups you still want. (see [below for nested schema](#nestedblock--accounts--group))
+- `run_as` (String) User to run as. Leave unset to inherit the tag definition's value.
+- `user` (Block List) Users to create. Setting any user replaces the inherited users instead of adding to them, so include the inherited users you still want. (see [below for nested schema](#nestedblock--accounts--user))
 
 <a id="nestedblock--accounts--group"></a>
 ### Nested Schema for `accounts.group`
@@ -107,13 +112,10 @@ Optional:
 Required:
 
 - `content` (String) File content.
+- `gid` (Number) Owner group ID, 0-65535.
+- `mode` (String) Octal file mode, for example `0644`.
 - `path` (String) File path inside the image.
-
-Optional:
-
-- `gid` (Number) Owner group ID.
-- `mode` (String) File mode (e.g. `0644`).
-- `uid` (Number) Owner user ID.
+- `uid` (Number) Owner user ID, 0-65535.
 
 
 <a id="nestedblock--reference_mapping"></a>
@@ -139,13 +141,14 @@ Optional:
 - `uid` (Number) Optional owner user ID. Omitted when not set.
 
 
-<a id="nestedblock--latest_build"></a>
+<a id="nestedatt--latest_build"></a>
 ### Nested Schema for `latest_build`
 
 Read-Only:
 
-- `completed_at` (String) Build completion time.
-- `created_at` (String) Build creation time.
-- `error` (String) Build error message.
 - `id` (String) Build ID.
-- `status` (String) Build status.
+- `platform` (String) Platform this build targets (e.g. `linux/amd64`).
+- `result` (String) Terminal build result (e.g. `SUCCESS`, `FAILURE`).
+- `started_at` (String) Time the build started.
+- `status` (String) Build status (e.g. `RUNNING`, `COMPLETED`).
+- `updated_at` (String) Last time the build status was updated.
