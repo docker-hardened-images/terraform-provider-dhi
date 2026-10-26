@@ -109,9 +109,9 @@ resource "dhi_customization" "this" {
     content {
       path    = file.value.path
       content = file.value.content
-      mode    = try(file.value.mode, null)
-      uid     = try(file.value.uid, null)
-      gid     = try(file.value.gid, null)
+      mode    = file.value.mode
+      uid     = file.value.uid
+      gid     = file.value.gid
     }
   }
 
