@@ -37,8 +37,9 @@ A customization inherits its settings from the tag definition it is built on. **
 - `file` (Block List) Files to add to the image. For image customizations only. `path`, `content`, `mode`, `uid` and `gid` are all required. (see [below for nested schema](#nestedblock--file))
 - `labels` (Map of String) Image labels as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's labels. A label you set overrides the inherited one with the same key; the other inherited labels are kept.
 - `platforms` (List of String) Target platforms. Required for image customizations; not used by Helm chart customizations. For example `platforms = ["linux/amd64", "linux/arm64"]`. Use platforms the tag definition supports; the `platforms` attribute of the `dhi_catalog_repository` data source lists them.
-- `reference_mapping` (Block List) Helm chart reference mappings. For Helm chart customizations only. (see [below for nested schema](#nestedblock--reference_mapping))
+- `reference_mapping` (Block List, Deprecated) Legacy Helm chart reference mappings. For Helm chart customizations only. Deprecated: use `variable_mapping`. Can't be used to create a customization, and a customization that uses it can't be converted to `variable_mapping`. (see [below for nested schema](#nestedblock--reference_mapping))
 - `symlink` (Block List) Symlinks to create in the image. For image customizations only. (see [below for nested schema](#nestedblock--symlink))
+- `variable_mapping` (Block List) Where each reference of a Helm chart points. For Helm chart customizations only. List every variable of the chart, once each. A variable points at dhi.io (free images) when you set only `variable_name`, at another tag definition of a mirrored image when you also set `repository` and `tag_definition_id`, and at a customization when you also set `repository` and `customization_id`. Sub-charts can't point at a tag definition, only at a customization or dhi.io. (see [below for nested schema](#nestedblock--variable_mapping))
 - `working_directory` (String) Working directory. For image customizations only. Leave unset to inherit the tag definition's working directory; setting it overrides the inherited value.
 
 ### Read-Only
@@ -139,6 +140,20 @@ Optional:
 
 - `gid` (Number) Optional owner group ID. Omitted when not set.
 - `uid` (Number) Optional owner user ID. Omitted when not set.
+
+
+<a id="nestedblock--variable_mapping"></a>
+### Nested Schema for `variable_mapping`
+
+Required:
+
+- `variable_name` (String) Name of the chart variable, as listed by the Helm chart's tag definition. Don't change it.
+
+Optional:
+
+- `customization_id` (String) Customization of `repository` to point the variable at. Can't be set together with `tag_definition_id`.
+- `repository` (String) Mirrored repository to point the variable at, in `namespace/name` format or just `name` to default the namespace to the provider's `organization`. Leave it out to point at dhi.io.
+- `tag_definition_id` (String) Tag definition of `repository` to point the variable at. Not for sub-charts. Can't be set together with `customization_id`.
 
 
 <a id="nestedatt--latest_build"></a>

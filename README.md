@@ -184,6 +184,40 @@ resource "dhi_customization" "golang" {
 
 `destination` without a `/` is automatically prefixed with the provider's `organization`. Changing `name`, `source`, `destination` or `tag_definition_id` replaces the customization. See [docs/resources/customization.md](docs/resources/customization.md) for the full schema, including `file`, `symlink` and Helm chart customizations.
 
+#### Helm chart customizations
+
+A Helm chart customization needs no `platforms` or image fields. Instead it lists every variable of the chart in a `variable_mapping` block, and points each at one of:
+
+```hcl
+resource "dhi_customization" "redis_chart" {
+  name              = "Redis chart"
+  source            = "dhi/redis-chart"
+  destination       = "dhi-redis-chart"
+  tag_definition_id = "redis-chart/23"
+
+  # dhi.io (free images): only the variable name
+  variable_mapping {
+    variable_name = "BASH_REFERENCE"
+  }
+
+  # Another tag definition of a mirrored image
+  variable_mapping {
+    variable_name     = "REDIS_REFERENCE"
+    repository        = "dhi-redis"
+    tag_definition_id = "redis/debian-13/8-dev"
+  }
+
+  # A customization of a mirrored image
+  variable_mapping {
+    variable_name    = "KUBECTL_REFERENCE"
+    repository       = "dhi-kubectl"
+    customization_id = "cz_10xsiwpln892u"
+  }
+}
+```
+
+Sub-charts can't point at a tag definition, only at a customization or dhi.io. Don't change the variable names. `terraform import` shows the variables of an existing customization. The `reference_mapping` block is deprecated: it can't be used to create a customization and a customization that uses it can't be converted, but one that already uses it can still be updated. See [examples/resources/dhi_customization_helm_chart](examples/resources/dhi_customization_helm_chart/main.tf) for a complete example.
+
 #### Inheritance and overriding
 
 | Field | When you set it |
