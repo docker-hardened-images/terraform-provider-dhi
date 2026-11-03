@@ -213,6 +213,10 @@ resource "dhi_customization" "redis_chart" {
     repository       = "dhi-kubectl"
     customization_id = "cz_10xsiwpln892u"
   }
+
+  variable_mapping {
+    variable_name = "REDIS_EXPORTER_REFERENCE"
+  }
 }
 ```
 
