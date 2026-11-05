@@ -74,8 +74,9 @@ resource "dhi_customization" "golang" {
     source = "/usr/local/bin/bar"
   }
 
-  # Each field you set overrides the inherited one. Setting user or group replaces the
-  # inherited list instead of adding to it.
+  # Each field you set overrides the inherited one, and the fields you leave out are still
+  # inherited. Setting user or group replaces the whole inherited list instead of adding
+  # to it, so include the inherited users and groups you still want.
   accounts {
     run_as           = "appuser"
     create_root_user = false
@@ -99,13 +100,15 @@ resource "dhi_customization" "golang" {
   }
 
   # Environment variables, labels and annotations are merged by key with the inherited
-  # ones: a key you set overrides the inherited key with the same name.
+  # ones: a key you set overrides the inherited key with the same name, and the other
+  # inherited keys are kept.
   environment = {
     APP_ENV    = "production"
     LOG_LEVEL  = "info"
     GOMAXPROCS = "4"
   }
 
+  # Entrypoint and cmd are replaced entirely by the list you set. Leave them out to inherit.
   entrypoint = ["/usr/local/bin/go"]
   cmd        = ["version"]
 

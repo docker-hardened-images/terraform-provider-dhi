@@ -86,7 +86,7 @@ output "tag_definitions" {
 
 ### Create an Image Customization
 
-A customization is built on a tag definition and inherits its settings. Leave a field out to inherit the tag definition's value. Set a field to override it. Nothing is filled in for you, so what you write is what is stored, and later changes to the tag definition reach the fields you left out.
+A customization is built on a tag definition and inherits its settings. Leave a field out to keep following the tag definition, including later changes to it. Set a field to override it. See [Inheritance and overriding](#inheritance-and-overriding) for how each field combines with the inherited value.
 
 Only set a field when you want to override it. The example below sets every field that can be set. In your own configuration, keep only the ones you want to override.
 
@@ -126,15 +126,17 @@ resource "dhi_customization" "golang" {
     "com.example.team" = "platform-engineering"
   }
 
-  # Inherited if left out. Setting it replaces the inherited value.
+  # Inherited if left out. Setting it replaces the inherited list entirely, so include any
+  # inherited arguments you still want.
   entrypoint = ["/usr/local/bin/go"]
   cmd        = ["version"]
 
   # Inherited if left out. Setting it overrides the inherited working directory.
   working_directory = "/app"
 
-  # Inherited if left out. Each field you set overrides the inherited one. Setting user or
-  # group replaces the inherited list instead of adding to it.
+  # Inherited if left out. Each field you set overrides the inherited one, and the fields
+  # you leave out are still inherited. Setting user or group replaces the whole inherited
+  # list instead of adding to it, so include the inherited users and groups you still want.
   accounts {
     run_as           = "nonroot"
     create_root_user = false
