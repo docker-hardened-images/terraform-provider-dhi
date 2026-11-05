@@ -4,14 +4,14 @@ page_title: "dhi_customization Resource - terraform-provider-dhi"
 subcategory: ""
 description: |-
   Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations.
-  A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition; a field you set is stored on the customization and stops following it. Nothing is filled in for you, so what you write is what is stored. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
+  A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition, including later changes to it; a field you set stops following it. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
 ---
 
 # dhi_customization (Resource)
 
 Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations.
 
-A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition; a field you set is stored on the customization and stops following it. Nothing is filled in for you, so what you write is what is stored. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
+A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition, including later changes to it; a field you set stops following it. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
 
 
 
