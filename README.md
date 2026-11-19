@@ -43,7 +43,7 @@ export DHI_ORG="your-org"
 
 | Resource | Description |
 |----------|-------------|
-| `dhi_customization` | Manage image and Helm chart customizations (full CRUD + import) |
+| `dhi_customization` | Manage image customizations of one or several tag definitions, and Helm chart customizations of one (full CRUD + import) |
 | `dhi_mirror` | Manage mirrored repository configurations |
 
 ### Data Sources
@@ -243,6 +243,44 @@ terraform import dhi_customization.golang <customization-id>
 ```
 
 Import records only what the customization overrides. Anything it inherits is `null` in state, so write only the overridden fields in your configuration. Run `terraform plan` after the import: it should show no changes.
+
+### Customize several tag definitions at once
+
+A customization can have several targets, so you don't need one `dhi_customization` per tag definition. Give each target its own `target` block with a `source`, `destination` and `tag_definition_id`:
+
+```hcl
+resource "dhi_customization" "golang" {
+  name      = "golang"
+  platforms = ["linux/amd64", "linux/arm64"]
+
+  target {
+    source            = "dhi/golang"
+    destination       = "my-org/dhi-golang"
+    tag_definition_id = "golang/alpine-3.23/1.26"
+  }
+
+  target {
+    source            = "dhi/golang"
+    destination       = "my-org/dhi-golang"
+    tag_definition_id = "golang/alpine-3.23/1.26-dev"
+  }
+
+  environment = { APP_ENV = "production" }
+}
+```
+
+A single `target` block is the same as setting `source`, `destination` and `tag_definition_id`. Adding or removing a `target` block changes the number of targets and updates the customization in place. Going from one target to several, or back, can change the customization's `id`. The two ways of setting a target can't be combined in one resource, and the `source`, `destination` and `tag_definition_id` form keeps working.
+
+The sources of all targets must be image repositories, or one Helm chart. A Helm chart customization has exactly one target, and you can't mix image and Helm chart targets. `variable_mapping` goes next to a single `target` block just as it does next to `source`, `destination` and `tag_definition_id`. What differs with several targets:
+
+- **No `accounts`, `entrypoint`, `cmd` or `working_directory`.** They can only be set with one target.
+- **Each target's `source` and `destination` are `namespace/name`.** A bare name isn't accepted in a `target` block.
+- **The targets must be compatible.** They need the same destination namespace and the same distribution (for example all alpine-3.23).
+- **`tag_suffix` and `latest_build` are null.**
+
+See [examples/resources/dhi_customization_several_targets](examples/resources/dhi_customization_several_targets/main.tf) for a complete example.
+
+Import it by its id, then run `terraform plan`. A customization with several targets is imported with `target` blocks, and one with a single target with `source`, `destination` and `tag_definition_id`. A customization that is one of the targets of another can't be managed on its own, so importing it fails. Import the customization it belongs to instead.
 
 ## 📄 License
 

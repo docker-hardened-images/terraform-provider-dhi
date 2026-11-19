@@ -3,13 +3,19 @@
 page_title: "dhi_customization Resource - terraform-provider-dhi"
 subcategory: ""
 description: |-
-  Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations.
+  Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations. A Helm chart customization sets variable_mapping; an image customization sets the image fields, such as platforms, contents and environment.
+  A customization has one target or several. Set one target with source, destination and tag_definition_id, or with a target block. Several targets need a target block each. Adding or removing a target block changes the number of targets without replacing the customization, and can change its id.
+  The sources of all targets must be image repositories, or a single Helm chart: a Helm chart customization has exactly one target, and image and Helm chart targets can't be mixed.
   A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition, including later changes to it; a field you set stops following it. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
 ---
 
 # dhi_customization (Resource)
 
-Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations.
+Manages a Docker Hardened Images customization. Supports both image and Helm chart customizations. A Helm chart customization sets `variable_mapping`; an image customization sets the image fields, such as `platforms`, `contents` and `environment`.
+
+A customization has one target or several. Set one target with `source`, `destination` and `tag_definition_id`, or with a `target` block. Several targets need a `target` block each. Adding or removing a `target` block changes the number of targets without replacing the customization, and can change its `id`.
+
+The sources of all targets must be image repositories, or a single Helm chart: a Helm chart customization has exactly one target, and image and Helm chart targets can't be mixed.
 
 A customization inherits its settings from the tag definition it is built on. **Only set a field if you want to override the inherited value.** A field you leave out keeps following the tag definition, including later changes to it; a field you set stops following it. Removing a field from your configuration goes back to inheriting it. Importing a customization records only the fields it overrides; the inherited ones are null in state.
 
@@ -20,10 +26,7 @@ A customization inherits its settings from the tag definition it is built on. **
 
 ### Required
 
-- `destination` (String) Destination repository. Use `namespace/name` format or just `name` to default the namespace to the provider's `organization`. Changing it to a different repository replaces the customization.
 - `name` (String) Name of the customization. Changing it replaces the customization.
-- `source` (String) Source DHI repository in `namespace/name` format (e.g. `dhi/golang`).
-- `tag_definition_id` (String) Tag definition ID from the source repository catalog.
 
 ### Optional
 
@@ -32,21 +35,25 @@ A customization inherits its settings from the tag definition it is built on. **
 - `cmd` (List of String) CMD arguments. For image customizations only. Leave unset to inherit the tag definition's command. Setting it replaces the inherited command.
 - `compression` (String) Layer compression algorithm. Must be one of `GZIP` or `ZSTD`. For image customizations only. Leave unset to keep the default compression; setting it overrides the default.
 - `contents` (Block, Optional) Additional packages and artifacts. For image customizations only. Leave the block out to inherit. (see [below for nested schema](#nestedblock--contents))
+- `destination` (String) Destination repository. Use `namespace/name` format or just `name` to default the namespace to the provider's `organization`. Changing it to a different repository replaces the customization.
 - `entrypoint` (List of String) Entrypoint arguments. For image customizations only. Leave unset to inherit the tag definition's entrypoint. Setting it replaces the inherited entrypoint.
 - `environment` (Map of String) Environment variables as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's variables. A variable you set overrides the inherited one with the same name; the other inherited variables are kept.
 - `file` (Block List) Files to add to the image. For image customizations only. `path`, `content`, `mode`, `uid` and `gid` are all required. (see [below for nested schema](#nestedblock--file))
 - `labels` (Map of String) Image labels as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's labels. A label you set overrides the inherited one with the same key; the other inherited labels are kept.
-- `platforms` (List of String) Target platforms. Required for image customizations; not used by Helm chart customizations. For example `platforms = ["linux/amd64", "linux/arm64"]`. Use platforms the tag definition supports; the `platforms` attribute of the `dhi_catalog_repository` data source lists them.
+- `platforms` (List of String) Target platforms. Required for image customizations; not used by Helm chart customizations. For example `platforms = ["linux/amd64", "linux/arm64"]`. Use platforms the tag definition of every target supports; the `platforms` attribute of the `dhi_catalog_repository` data source lists them.
 - `reference_mapping` (Block List, Deprecated) Legacy Helm chart reference mappings. For Helm chart customizations only. Deprecated: use `variable_mapping`. Can't be used to create a customization, and a customization that uses it can't be converted to `variable_mapping`. (see [below for nested schema](#nestedblock--reference_mapping))
+- `source` (String) Source DHI repository in `namespace/name` format (e.g. `dhi/golang`). Set it with `destination` and `tag_definition_id` for one target, or use `target` blocks instead.
 - `symlink` (Block List) Symlinks to create in the image. For image customizations only. (see [below for nested schema](#nestedblock--symlink))
+- `tag_definition_id` (String) Tag definition ID from the source repository catalog. Changing it replaces the customization.
+- `target` (Block Set) A tag definition to customize and the repository to push the result to. Each block sets the `source`, `destination` and `tag_definition_id` of one target. Don't set those three on the resource itself when you use `target` blocks. With several targets, all of them are customized at once and `accounts`, `entrypoint`, `cmd` and `working_directory` can't be set. All targets must be image repositories in the same destination namespace that share the same distribution. A Helm chart can only be a single target. (see [below for nested schema](#nestedblock--target))
 - `variable_mapping` (Block List) Where each reference of a Helm chart points. For Helm chart customizations only. List every variable of the chart, once each. A variable points at dhi.io (free images) when you set only `variable_name`, at another tag definition of a mirrored image when you also set `repository` and `tag_definition_id`, and at a customization when you also set `repository` and `customization_id`. Sub-charts can't point at a tag definition, only at a customization or dhi.io. (see [below for nested schema](#nestedblock--variable_mapping))
 - `working_directory` (String) Working directory. For image customizations only. Leave unset to inherit the tag definition's working directory; setting it overrides the inherited value.
 
 ### Read-Only
 
-- `id` (String) Unique identifier of the customization.
-- `latest_build` (Attributes) Latest build information (computed by the server). (see [below for nested schema](#nestedatt--latest_build))
-- `tag_suffix` (String) Tag suffix assigned to this customization.
+- `id` (String) Unique identifier of the customization. It can change when the number of targets goes from one to several, or back.
+- `latest_build` (Attributes) Latest build information (computed by the server). Null with several targets. (see [below for nested schema](#nestedatt--latest_build))
+- `tag_suffix` (String) Tag suffix assigned to this customization. Null with several targets.
 
 <a id="nestedblock--accounts"></a>
 ### Nested Schema for `accounts`
@@ -140,6 +147,16 @@ Optional:
 
 - `gid` (Number) Optional owner group ID. Omitted when not set.
 - `uid` (Number) Optional owner user ID. Omitted when not set.
+
+
+<a id="nestedblock--target"></a>
+### Nested Schema for `target`
+
+Required:
+
+- `destination` (String) Destination repository in `namespace/name` format.
+- `source` (String) Source DHI repository in `namespace/name` format (e.g. `dhi/golang`).
+- `tag_definition_id` (String) Tag definition ID from the source repository catalog.
 
 
 <a id="nestedblock--variable_mapping"></a>
