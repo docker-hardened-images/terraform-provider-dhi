@@ -32,12 +32,12 @@ A customization inherits its settings from the tag definition it is built on. **
 
 - `accounts` (Block, Optional) Account configuration. For image customizations only. Leave the block out to inherit the tag definition's accounts. Each field you set overrides the inherited value; the fields you leave out are still inherited. (see [below for nested schema](#nestedblock--accounts))
 - `annotations` (Map of String) Image annotations as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's annotations. An annotation you set overrides the inherited one with the same key; the other inherited annotations are kept.
-- `cmd` (List of String) CMD arguments. For image customizations only. Leave unset to inherit the tag definition's command. Setting it replaces the inherited command.
+- `cmd` (List of String) CMD arguments. For image customizations only. Leave unset to inherit the tag definition's command. If set, it replaces the inherited command and can't be empty or have empty arguments.
 - `compression` (String) Layer compression algorithm. Must be one of `GZIP` or `ZSTD`. For image customizations only. Leave unset to keep the default compression; setting it overrides the default.
 - `contents` (Block, Optional) Additional packages and artifacts. For image customizations only. Leave the block out to inherit. (see [below for nested schema](#nestedblock--contents))
 - `destination` (String) Destination repository. Use `namespace/name` format or just `name` to default the namespace to the provider's `organization`. Changing it to a different repository replaces the customization.
-- `entrypoint` (List of String) Entrypoint arguments. For image customizations only. Leave unset to inherit the tag definition's entrypoint. Setting it replaces the inherited entrypoint.
-- `environment` (Map of String) Environment variables as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's variables. A variable you set overrides the inherited one with the same name; the other inherited variables are kept.
+- `entrypoint` (List of String) Entrypoint arguments. For image customizations only. Leave unset to inherit the tag definition's entrypoint. If set, it replaces the inherited entrypoint and can't be empty or have empty arguments.
+- `environment` (Map of String) Environment variables as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's variables. A variable you set overrides the inherited one with the same name and can't have an empty value; the other inherited variables are kept.
 - `file` (Block List) Files to add to the image. For image customizations only. `path`, `content`, `mode`, `uid` and `gid` are all required. (see [below for nested schema](#nestedblock--file))
 - `labels` (Map of String) Image labels as key-value pairs. For image customizations only. Leave unset to inherit the tag definition's labels. A label you set overrides the inherited one with the same key; the other inherited labels are kept.
 - `platforms` (List of String) Target platforms. Required for image customizations; not used by Helm chart customizations. For example `platforms = ["linux/amd64", "linux/arm64"]`. Use platforms the tag definition of every target supports; the `platforms` attribute of the `dhi_catalog_repository` data source lists them.
@@ -71,7 +71,7 @@ Optional:
 Required:
 
 - `gid` (Number) Group ID.
-- `name` (String) Group name.
+- `name` (String) Group name. Can't be empty.
 
 Optional:
 
@@ -83,7 +83,7 @@ Optional:
 
 Required:
 
-- `name` (String) Username.
+- `name` (String) Username. Can't be empty.
 - `uid` (Number) User ID.
 
 Optional:
@@ -122,7 +122,7 @@ Required:
 - `content` (String) File content.
 - `gid` (Number) Owner group ID, 0-65535.
 - `mode` (String) Octal file mode, for example `0644`.
-- `path` (String) File path inside the image.
+- `path` (String) Absolute file path inside the image.
 - `uid` (Number) Owner user ID, 0-65535.
 
 
