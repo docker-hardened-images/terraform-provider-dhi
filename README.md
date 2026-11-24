@@ -265,6 +265,7 @@ resource "dhi_customization" "golang" {
     tag_definition_id = "golang/alpine-3.23/1.26-dev"
   }
 
+  compression = "ZSTD"
   environment = { APP_ENV = "production" }
 }
 ```
